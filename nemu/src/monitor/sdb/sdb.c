@@ -18,6 +18,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+// add utils.h then we can edit the NEMU_.. in this C file.
+#include <utils.h>
 
 static int is_batch_mode = false;
 
@@ -49,10 +51,26 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
+	// fix the problem of beautiful quit / exit
+	nemu_state.state = NEMU_END;
   return -1;
 }
 
 static int cmd_help(char *args);
+
+static int cmd_si(char *args){
+  //if have no specific figures given, the default choice is one.
+  int num = (args != NULL && *args) ? atoi(args) : 1;
+
+  // run code with the time of "num".
+  for(int i = 0; i < num; i++){
+    // if the program has terminated, then stop the loop. 
+    if(nemu_state.state == NEMU_END) break;
+    cpu_exec(1);
+  }
+
+  return 0;
+}
 
 static struct {
   const char *name;
@@ -62,7 +80,8 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
+	{ "si", "let program run N steps and N is one if have no specific figures is given", cmd_si},
+  
   /* TODO: Add more commands */
 
 };
