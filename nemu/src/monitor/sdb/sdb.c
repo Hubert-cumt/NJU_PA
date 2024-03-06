@@ -109,13 +109,15 @@ static int cmd_x(char* args){
   vaddr_t addr_beginning = (uint32_t) strtoul(token, NULL, 16);
 
   for(int i = 0; i < num; i++){
+    // determine the validity of the address.
+    if (addr_beginning >= 0x87ffffff) break;
+
     // the meaning of 4 is read 4 Byte every time.
     word_t temp = vaddr_read(addr_beginning, 4);
-    printf("0x%08x\n", temp);
-    // TODO: determine the validity of the address.
+    printf("0x%08x : 0x%08x\n", addr_beginning, temp);
     addr_beginning += 4;
   }
-
+  
   return 0;
 }
 
