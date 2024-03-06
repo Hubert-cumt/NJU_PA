@@ -20,6 +20,10 @@
 #include "sdb.h"
 // add utils.h then we can edit the NEMU_.. in this C file.
 #include <utils.h>
+// add debug.h to debug
+#include <debug.h>
+// add API of print regs but i found this file has been included. finefinefine.
+// #include <isa.h>
 
 static int is_batch_mode = false;
 
@@ -72,6 +76,25 @@ static int cmd_si(char *args){
   return 0;
 }
 
+static int cmd_info(char* args){
+  Log("this is args, %s", args);
+  // use switch-case , only single parameters 
+  // if long parameters : can be replaced with if-else 
+  switch (*args) {
+    case 'r':
+      isa_reg_display();
+      break;
+
+    case 'w':
+      
+      break;
+    default:
+      printf("No valid parameters were provided\n");
+  }
+  
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -81,7 +104,7 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
 	{ "si", "let program run N steps and N is one if have no specific figures is given", cmd_si},
-  
+  { "info", "Print the enssential infomation", cmd_info},
   /* TODO: Add more commands */
 
 };
