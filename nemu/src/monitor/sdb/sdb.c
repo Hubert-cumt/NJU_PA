@@ -24,6 +24,8 @@
 #include <debug.h>
 // add API of print regs but i found this file has been included. finefinefine.
 // #include <isa.h>
+// add API for vaddr_read
+#include <memory/vaddr.h>
 
 static int is_batch_mode = false;
 
@@ -77,7 +79,7 @@ static int cmd_si(char *args){
 }
 
 static int cmd_info(char* args){
-  Log("this is args, %s", args);
+  // Log("this is args, %s", args);
   // use switch-case , only single parameters 
   // if long parameters : can be replaced with if-else 
   switch (*args) {
@@ -95,6 +97,28 @@ static int cmd_info(char* args){
   return 0;
 }
 
+static int cmd_x(char* args){
+  // use strtok to partition the command. 
+  char* token = strtok(args, " ");
+  // get the num 
+  int num = atoi(token);
+  token = strtok(NULL, " ");
+  // Tip : vaddr_t word_t uint32_t are equal
+  // PA1 : it is assumed that expr can only be a hexadecimal number
+  // the founction of strtoul : String to unsigned long 
+  vaddr_t addr_beginning = (uint32_t) strtoul(token, NULL, 16);
+
+  for(int i = 0; i < num; i++){
+    // the meaning of 4 is read 4 Byte every time.
+    word_t temp = vaddr_read(addr_beginning, 4);
+    printf("0x%08x\n", temp);
+    // TODO: determine the validity of the address.
+    addr_beginning += 4;
+  }
+
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -105,6 +129,8 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
 	{ "si", "let program run N steps and N is one if have no specific figures is given", cmd_si},
   { "info", "Print the enssential infomation", cmd_info},
+  { "x", "scan the RAM", cmd_x},
+
   /* TODO: Add more commands */
 
 };
