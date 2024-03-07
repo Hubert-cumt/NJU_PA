@@ -98,12 +98,12 @@ static int cmd_info(char* args){
 }
 
 static int cmd_x(char* args){
-  // use strtok to partition the command. 
+  // use strtok to finish the command partition.
   char* token = strtok(args, " ");
   // get the num 
   int num = atoi(token);
   token = strtok(NULL, " ");
-  // Tip : vaddr_t word_t uint32_t are equal
+  // Tip : vaddr_t word_t uint32_t are equal.
   // PA1 : it is assumed that expr can only be a hexadecimal number
   // the founction of strtoul : String to unsigned long 
   vaddr_t addr_beginning = (uint32_t) strtoul(token, NULL, 16);

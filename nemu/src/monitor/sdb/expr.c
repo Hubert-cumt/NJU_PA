@@ -20,11 +20,13 @@
  */
 #include <regex.h>
 
-enum {
-  TK_NOTYPE = 256, TK_EQ,
+enum
+{
+  TK_NOTYPE = 256, // whitespace string
+  TK_EQ,           // equality symbol
+  TK_INTEGER,      // decimal integer
 
   /* TODO: Add more token types */
-
 };
 
 static struct rule {
@@ -38,7 +40,13 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
+  {"\\-", '-'},
+  {"\\/", '/'},
+  {"\\*", '*'},
+  {"\\(", '('},
+  {"\\)", ')'},
   {"==", TK_EQ},        // equal
+  {"[0-9]+", TK_INTEGER}, // 
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -89,13 +97,31 @@ static bool make_token(char *e) {
 
         position += substr_len;
 
-        /* TODO: Now a new token is recognized with rules[i]. Add codes
+        /* Now a new token is recognized with rules[i]. Add codes
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+          case 256: break;
+          default: 
+            char token_content[32] = {};
+            char* token_begin = substr_start;
+            for(int k = 0; k < substr_len; k ++){
+              token_content[k] = *token_begin;
+              token_begin ++;
+            }
+            //  add the infomation of token to tokens one by one.
+            tokens[nr_token].type = rules[i].token_type;
+
+            /* the assignment to experssion with array type is not 
+             * allowed in the c. so i decided to use memcpy.
+             * tokens[nr_token].str = token_content;
+             */
+            
+            memcpy(tokens[nr_token].str, token_content, sizeof(tokens[nr_token].str));
+
+            nr_token ++;
         }
 
         break;
@@ -123,3 +149,65 @@ word_t expr(char *e, bool *success) {
 
   return 0;
 }
+
+word_t eval(int p, int q){
+
+}
+
+/**/
+bool check_parentheses(const char* str){
+  stack_init();
+
+  while(*str != '\0') {
+    if(*str == '(') push('(');
+    else if (*str == ')') {
+      if(peek() == '(') pop();
+      else return false;
+    }
+    str ++;
+  }
+
+  return stack.top() == -1;
+}
+
+// Implementation of the Stack Data Structure
+#define MAX_STACK_SIZE 100
+
+struct {
+  char items[MAX_STACK_SIZE];
+  int top;
+} stack;
+
+// the inition of stack
+void stack_init() {
+  stack.top = -1;
+}
+
+/* Some founction of stack */
+void push(char item) {
+  if(stack.top < MAX_STACK_SIZE - 1) {
+    stack.items[++ stack.top] = item;
+  } else{
+    Log("The stack is full.");
+    return '\0';
+  }
+}
+
+char pop() {
+  if(stack.top > 0) {
+    return stack.items[stack.top --];
+  }else {
+    Log("The stack is empty.");
+    return '\0';
+  }
+}
+
+char peek(){
+  if(stack.top > 0) {
+    return stack.items[stack.top];
+  }else {
+    Log("The stack is empty.");
+    return '\0';
+  }
+}
+
