@@ -25,6 +25,15 @@ enum
   TK_NOTYPE = 256, // whitespace string
   TK_EQ,           // equality symbol
   TK_INTEGER,      // decimal integer
+  
+  // Operator precedence
+  // 310
+  TK_PLUS = 311,
+  TK_MINUS,
+
+  // 320
+  TK_MULTI = 321,
+  TK_DIV,
 
   /* TODO: Add more token types */
 };
@@ -39,10 +48,10 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus
-  {"\\-", '-'},
-  {"\\/", '/'},
-  {"\\*", '*'},
+  {"\\+", TK_PLUS},         // plus
+  {"\\-", TK_MINUS},
+  {"\\/", TK_DIV},
+  {"\\*", TK_MULTI},
   {"\\(", '('},
   {"\\)", ')'},
   {"==", TK_EQ},        // equal
@@ -75,7 +84,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[10000] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -137,77 +146,99 @@ static bool make_token(char *e) {
   return true;
 }
 
+/* The founction of check is determine whether this experssion
+ * is enclosed by a matching pair of parentheses.*/
+bool check_parentheses(int p, int q)
+{
+  // the head and tail should be parenthesis.
+  if (tokens[p].type != '(' || tokens[q].type != ')')
+    return false;
 
-word_t expr(char *e, bool *success) {
-  if (!make_token(e)) {
+  // determin whether ...
+  int balance = 0;
+  for (int i = p; i <= q; i++)
+  {
+    if (tokens[i].type == '(')
+      balance++;
+    else if (tokens[i].type == ')')
+      balance--;
+
+    if (balance == 0)
+    {
+      if (i == q) return true;
+      else return false;
+    }
+  }
+
+  return false;
+}
+
+int eval(int p, int q, bool* success){
+  if(! *success || p > q) {
+    *success = false;
+    return 0;
+  }
+  else if (p == q) {
+    return atoi(tokens[p].str);
+  }
+  else if (check_parentheses(p, q) == true) {
+    return eval(p + 1, q - 1, success);
+  }
+  else {
+    int balance = 0;
+    int op_type = 500;
+    int op = 0;
+    for(int i = p; i <= q; i ++) {
+      if(tokens[i].type == '(') balance ++;
+      else if(tokens[i].type == ')') balance --;
+      
+      // bad experssion.
+      if(balance < 0) {
+        *success = false;
+        return 0;
+      }
+
+      // Token enclosed within a pair of  parentheses is not the main operator.
+      if(balance == 0 && tokens[i].type >= 300) {
+        if(tokens[i].type / 10 <= op_type / 10) {
+          op = i;
+          op_type = tokens[i].type;
+        }
+      }
+    }
+      int val1 = eval(p, op - 1, success);
+      int val2 = eval(op + 1, q, success);
+
+      switch(op_type) {
+        case TK_PLUS : return val1 + val2;
+        case TK_MINUS: return val1 - val2;
+        case TK_MULTI: return val1 * val2;
+        case TK_DIV  : if(val2 == 0) {
+          Log("%d %d",op+1, q);
+          *success = false;
+          Log("!!!!! %d %d", p, q);
+          return 0;
+        }else {
+          return val1 / val2;
+        }
+        default : assert(0);
+      }
+    
+  }
+
+  return 0;
+}
+
+word_t expr(char *e, bool *success)
+{
+  if (!make_token(e))
+  {
     *success = false;
     return 0;
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  word_t res = eval(0, nr_token - 1, success);
 
-  return 0;
+  return res;
 }
-
-word_t eval(int p, int q){
-
-}
-
-/**/
-bool check_parentheses(const char* str){
-  stack_init();
-
-  while(*str != '\0') {
-    if(*str == '(') push('(');
-    else if (*str == ')') {
-      if(peek() == '(') pop();
-      else return false;
-    }
-    str ++;
-  }
-
-  return stack.top() == -1;
-}
-
-// Implementation of the Stack Data Structure
-#define MAX_STACK_SIZE 100
-
-struct {
-  char items[MAX_STACK_SIZE];
-  int top;
-} stack;
-
-// the inition of stack
-void stack_init() {
-  stack.top = -1;
-}
-
-/* Some founction of stack */
-void push(char item) {
-  if(stack.top < MAX_STACK_SIZE - 1) {
-    stack.items[++ stack.top] = item;
-  } else{
-    Log("The stack is full.");
-    return '\0';
-  }
-}
-
-char pop() {
-  if(stack.top > 0) {
-    return stack.items[stack.top --];
-  }else {
-    Log("The stack is empty.");
-    return '\0';
-  }
-}
-
-char peek(){
-  if(stack.top > 0) {
-    return stack.items[stack.top];
-  }else {
-    Log("The stack is empty.");
-    return '\0';
-  }
-}
-

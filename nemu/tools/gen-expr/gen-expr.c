@@ -31,8 +31,65 @@ static char *code_format =
 "  return 0; "
 "}";
 
-static void gen_rand_expr() {
-  buf[0] = '\0';
+uint32_t choose(uint32_t n) {
+  return rand() % n;
+}
+
+static void gen(char c) {
+  size_t len = strlen(buf);
+  if(len < sizeof(buf) - 1) {
+    buf[len] = c;
+    buf[len + 1] = '\0';
+  }
+}
+
+// static void gen_num() {
+//   int randomDigit = rand() % 10;
+//   char digitChar = '0' + randomDigit;
+//   gen(digitChar);
+// }
+
+static void gen_num() {
+  int randomNum = rand() % 50;
+  char numBuffer[4] = {};
+  sprintf(numBuffer, "%d", randomNum);
+
+  for(int i = 0; numBuffer[i] != '\0'; i++) {
+    gen(numBuffer[i]);
+  }
+}
+
+static void gen_rand_op() {
+  char operators[] = {'+', '-', '*', '/'};
+  gen(operators[choose(4)]);
+}
+
+static void gen_rand_expr(int depth, int maxDepth) {
+  if(depth >= maxDepth) {
+    gen_num();
+    return;
+  }
+
+  switch (choose(3)) {
+    case 0:
+      gen_num(); 
+      break;
+
+    case 1: 
+      gen('('); 
+      gen_rand_expr(depth + 1, maxDepth); 
+      gen(')');break;
+
+    // case 2: 
+    //   gen(' ');
+    //   break;
+
+    default :
+      gen_rand_expr(depth + 1, maxDepth);
+      gen_rand_op();
+      gen_rand_expr(depth + 1, maxDepth);
+      break;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -44,7 +101,10 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
-    gen_rand_expr();
+    // init the buf.
+    buf[0] = '\0';
+
+    gen_rand_expr(0, 10);
 
     sprintf(code_buf, code_format, buf);
 
@@ -53,7 +113,7 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc -pthread -Wall -Werror /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
