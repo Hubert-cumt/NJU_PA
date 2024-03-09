@@ -54,9 +54,11 @@ static void gen_num() {
   char numBuffer[4] = {};
   sprintf(numBuffer, "%d", randomNum);
 
+
   for(int i = 0; numBuffer[i] != '\0'; i++) {
     gen(numBuffer[i]);
   }
+  gen('u');
 }
 
 static void gen_rand_op() {

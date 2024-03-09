@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 #endif
 
-  /* test the calculator
+  // test the calculator
 
   FILE *file = fopen("/home/hubert/ics2023/nemu/src/input", "r");
   if(file == NULL) {
@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
   }
   Log("%d",cnt);
   
-  ******************/
 
   /* Start engine. */
   engine_start();

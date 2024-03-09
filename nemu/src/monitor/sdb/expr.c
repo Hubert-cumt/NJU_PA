@@ -55,7 +55,7 @@ static struct rule {
   {"\\(", '('},
   {"\\)", ')'},
   {"==", TK_EQ},        // equal
-  {"[0-9]+", TK_INTEGER}, // 
+  {"[0-9]+u", TK_INTEGER}, // 
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -173,7 +173,7 @@ bool check_parentheses(int p, int q)
   return false;
 }
 
-int eval(int p, int q, bool* success){
+word_t eval(int p, int q, bool* success){
   if(! *success || p > q) {
     *success = false;
     return 0;
@@ -206,21 +206,29 @@ int eval(int p, int q, bool* success){
         }
       }
     }
-      int val1 = eval(p, op - 1, success);
-      int val2 = eval(op + 1, q, success);
+    word_t val1 = eval(p, op - 1, success);
+    word_t val2 = eval(op + 1, q, success);
 
-      switch(op_type) {
-        case TK_PLUS : return val1 + val2;
-        case TK_MINUS: return val1 - val2;
-        case TK_MULTI: return val1 * val2;
-        case TK_DIV  : if(val2 == 0) {
-          Log("%d %d",op+1, q);
-          *success = false;
-          Log("!!!!! %d %d", p, q);
-          return 0;
-        }else {
-          return val1 / val2;
-        }
+    switch (op_type)
+    {
+    case TK_PLUS:
+      return val1 + val2;
+    case TK_MINUS:
+      return val1 - val2;
+    case TK_MULTI:
+      return val1 * val2;
+    case TK_DIV:
+      if (val2 == 0)
+      {
+        Log("%d %d", op + 1, q);
+        *success = false;
+        Log("!!!!! %d %d", p, q);
+        return 0;
+      }
+      else
+      {
+        return val1 / val2;
+      }
         default : assert(0);
       }
     
