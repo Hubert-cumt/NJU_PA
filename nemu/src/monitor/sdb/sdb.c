@@ -126,7 +126,7 @@ static int cmd_x(char* args) {
 static int cmd_p(char* args) {
   bool* success = malloc(sizeof(bool));
   *success = true;
-  
+
   word_t res = expr(args, success);
   
   if(*success == false) {
@@ -150,7 +150,6 @@ static struct {
   { "info", "Print the enssential infomation", cmd_info},
   { "x", "scan the RAM", cmd_x},
   { "p", "print the value of experssion", cmd_p},
-
   /* TODO: Add more commands */
 
 };

@@ -26,6 +26,7 @@ enum
   TK_EQ,           // equality symbol
   TK_INTEGER,      // decimal integer
   TK_HEX,          // hexdecimal integer
+  TK_REG,          // Retrieve the value of a register
 
   // Operator precedence
   // 310
@@ -56,13 +57,16 @@ static struct rule {
     {"\\(", '('},
     {"\\)", ')'},
     {"==", TK_EQ}, // equal
-    
+
     /* plcing hexadecimal before decimal is done to prevent
      * the decimal matching from mistakenly capturing the '0'
-     * in the '0x' perfix of the hexadecimal. 
+     * in the '0x' perfix of the hexadecimal.
      */
+
     {"0x[0-9A-Fa-f]+", TK_HEX},
     {"[0-9]+u?", TK_INTEGER}, // decimal integer
+
+    {"\\$(ra|sp|gp|tp|t[0-6]|s[0-9]|a[0-7])", TK_REG}, //Regular expression to match registers.
 
 };
 
@@ -123,32 +127,66 @@ static bool make_token(char *e) {
         char *token_begin = substr_start;
 
         switch (rules[i].token_type) {
-          case 256: break;
-          //hexadecimal tranfer to decimal
-          case 259:
+          case TK_NOTYPE: break;
+
+          // Tranfer 0x.. -> uint32_t
+          case TK_HEX:
             for (int k = 0; k < substr_len; k++) {
               token_content[k] = *token_begin;
               token_begin++;
             }
             //  add the infomation of token to tokens one by one.
             tokens[nr_token].type = rules[i].token_type;
-            /* the assignment to experssion with array type is not
+            /* the assignment to expression with array type is not
              * allowed in the c. so i decided to use memcpy.
              * tokens[nr_token].str = token_content;
              */
-            // in case 259(hexadecimal) the val will be transfer to decimal
+            // in case of TK_HEX, the val will be transfer to decimal
             char* endptr;
             word_t decimal_value = strtoul(token_content, &endptr, 16);
 
             if(*endptr != '\0') {
-              printf("Fail to transfer hexadecimal to decimal, please check you experssion.");
+              printf("Fail to transfer hexadecimal to decimal, please check you expression.");
               return false;
             }
 
             sprintf(token_content, "%u", decimal_value);
 
             memcpy(tokens[nr_token].str, token_content, sizeof(tokens[nr_token].str));
-            nr_token++;
+            nr_token ++;
+            break;
+
+          // Transfer $regname -> uint32_t 
+          case TK_REG:
+            for(int k = 0; k < substr_len; k ++) {
+              token_content[k] = *token_begin;
+              token_begin ++;
+            }
+            tokens[nr_token].type = rules[i].token_type;
+
+            bool* success = malloc(sizeof(bool));
+            *success = true;
+
+            // in case of TK_REG, the val need to get by API.
+
+            // Before use API, we need to remove the header charactor "$".
+            if(substr_len > 0 && token_content[0] == '$') {
+              memmove(token_content, token_content + 1, substr_len - 1);
+              token_content[substr_len - 1] = '\0';
+            }
+
+            word_t regVal = isa_reg_str2val(token_content, success); //API of <isa.h>
+            
+            if(*success == false) {
+              printf("Fail to get the val of reg, please check you expression.");
+              return false;
+            }
+            
+            // uint32_t -> char*[]
+            sprintf(token_content, "%u", regVal);
+
+            memcpy(tokens[nr_token].str, token_content, sizeof(tokens[nr_token].str));
+            nr_token ++;
             break;
 
           default:
@@ -159,7 +197,7 @@ static bool make_token(char *e) {
             //  add the infomation of token to tokens one by one.
             tokens[nr_token].type = rules[i].token_type;
 
-            /* the assignment to experssion with array type is not 
+            /* the assignment to expression with array type is not 
              * allowed in the c. so i decided to use memcpy.
              * tokens[nr_token].str = token_content;
              */
@@ -182,7 +220,7 @@ static bool make_token(char *e) {
   return true;
 }
 
-/* The founction of check is determine whether this experssion
+/* The founction of check is determine whether this expression
  * is enclosed by a matching pair of parentheses.*/
 bool check_parentheses(int p, int q)
 {
@@ -239,7 +277,7 @@ word_t eval(int p, int q, bool* success){
       if(tokens[i].type == '(') balance ++;
       else if(tokens[i].type == ')') balance --;
       
-      // bad experssion.
+      // bad expression.
       if(balance < 0) {
         *success = false;
         return 0;
