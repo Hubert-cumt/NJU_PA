@@ -17,15 +17,17 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+// The include of this header file allows access to rhe "expr" function. 
 #include "sdb.h"
-// add utils.h then we can edit the NEMU_.. in this C file.
+// Add utils.h then we can edit the NEMU_.. in this C file.
 #include <utils.h>
-// add debug.h to debug
+// Add debug.h to debug
 #include <debug.h>
-// add API of print regs but i found this file has been included. finefinefine.
+// Add API of print regs but i found this file has been included. finefinefine.
 // #include <isa.h>
-// add API for vaddr_read
+// Add API for vaddr_read
 #include <memory/vaddr.h>
+
 
 static int is_batch_mode = false;
 
@@ -64,7 +66,7 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
-static int cmd_si(char *args){
+static int cmd_si(char *args) {
   //if have no specific figures given, the default choice is one.
   int num = (args != NULL && *args) ? atoi(args) : 1;
 
@@ -78,7 +80,7 @@ static int cmd_si(char *args){
   return 0;
 }
 
-static int cmd_info(char* args){
+static int cmd_info(char* args) {
   // Log("this is args, %s", args);
   // use switch-case , only single parameters 
   // if long parameters : can be replaced with if-else 
@@ -97,7 +99,7 @@ static int cmd_info(char* args){
   return 0;
 }
 
-static int cmd_x(char* args){
+static int cmd_x(char* args) {
   // use strtok to finish the command partition.
   char* token = strtok(args, " ");
   // get the num 
@@ -121,6 +123,21 @@ static int cmd_x(char* args){
   return 0;
 }
 
+static int cmd_p(char* args) {
+  bool* success = malloc(sizeof(bool));
+  *success = true;
+  
+  word_t res = expr(args, success);
+  
+  if(*success == false) {
+    printf("invaild experssion. \n");
+  }else {
+    printf("the result of calculate is %u \n", res);
+  }
+
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -132,6 +149,7 @@ static struct {
 	{ "si", "let program run N steps and N is one if have no specific figures is given", cmd_si},
   { "info", "Print the enssential infomation", cmd_info},
   { "x", "scan the RAM", cmd_x},
+  { "p", "print the value of experssion", cmd_p},
 
   /* TODO: Add more commands */
 

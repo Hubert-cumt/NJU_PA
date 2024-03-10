@@ -31,40 +31,40 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 #endif
 
-  // test the calculator
+  // // test the calculator
 
-  FILE *file = fopen("/home/hubert/ics2023/nemu/src/input", "r");
-  if(file == NULL) {
-    perror("Error opening file");
-    return 0;
-  }
+  // FILE *file = fopen("/home/hubert/ics2023/nemu/src/input", "r");
+  // if(file == NULL) {
+  //   perror("Error opening file");
+  //   return 0;
+  // }
 
-  char line[10000];
-  int cnt = 0;
-  int line_num = 0;
-  while(fgets(line, sizeof(line), file) != NULL) {
-    line_num ++;
-    word_t result = 0;
-    char experssionFromFile[10000];
-    sscanf(line, "%d %s", &result, experssionFromFile);
+  // char line[10000];
+  // int cnt = 0;
+  // int line_num = 0;
+  // while(fgets(line, sizeof(line), file) != NULL) {
+  //   line_num ++;
+  //   word_t result = 0;
+  //   char experssionFromFile[10000];
+  //   sscanf(line, "%d %s", &result, experssionFromFile);
 
-    bool *suc = malloc(sizeof(bool));
-    *suc = true;
-    word_t cal = expr(experssionFromFile, suc);
-    if(*suc == false){
-      // Log("%d", line_num);
-      // assert(0);
-      cnt ++;
-      continue;
-    }else{
-      if(cal == result) continue;
-      else {
-        cnt ++;
-        continue;
-      }
-    }
-  }
-  Log("%d",cnt);
+  //   bool *suc = malloc(sizeof(bool));
+  //   *suc = true;
+  //   word_t cal = expr(experssionFromFile, suc);
+  //   if(*suc == false){
+  //     // Log("%d", line_num);
+  //     // assert(0);
+  //     cnt ++;
+  //     continue;
+  //   }else{
+  //     if(cal == result) continue;
+  //     else {
+  //       cnt ++;
+  //       continue;
+  //     }
+  //   }
+  // }
+  // Log("%d",cnt);
   
 
   /* Start engine. */

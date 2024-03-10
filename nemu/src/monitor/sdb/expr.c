@@ -25,7 +25,8 @@ enum
   TK_NOTYPE = 256, // whitespace string
   TK_EQ,           // equality symbol
   TK_INTEGER,      // decimal integer
-  
+  TK_HEX,          // hexdecimal integer
+
   // Operator precedence
   // 310
   TK_PLUS = 311,
@@ -43,19 +44,26 @@ static struct rule {
   int token_type;
 } rules[] = {
 
-  /* TODO: Add more rules.
-   * Pay attention to the precedence level of different rules.
-   */
+    /* TODO: Add more rules.
+     * Pay attention to the precedence level of different rules.
+     */
 
-  {" +", TK_NOTYPE},    // spaces
-  {"\\+", TK_PLUS},         // plus
-  {"\\-", TK_MINUS},
-  {"\\/", TK_DIV},
-  {"\\*", TK_MULTI},
-  {"\\(", '('},
-  {"\\)", ')'},
-  {"==", TK_EQ},        // equal
-  {"[0-9]+u", TK_INTEGER}, // 
+    {" +", TK_NOTYPE}, // spaces
+    {"\\+", TK_PLUS},  // plus
+    {"\\-", TK_MINUS},
+    {"\\/", TK_DIV},
+    {"\\*", TK_MULTI},
+    {"\\(", '('},
+    {"\\)", ')'},
+    {"==", TK_EQ}, // equal
+    
+    /* plcing hexadecimal before decimal is done to prevent
+     * the decimal matching from mistakenly capturing the '0'
+     * in the '0x' perfix of the hexadecimal. 
+     */
+    {"0x[0-9A-Fa-f]+", TK_HEX},
+    {"[0-9]+u?", TK_INTEGER}, // decimal integer
+
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -111,11 +119,39 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
 
+        char token_content[32] = {};
+        char *token_begin = substr_start;
+
         switch (rules[i].token_type) {
           case 256: break;
-          default: 
-            char token_content[32] = {};
-            char* token_begin = substr_start;
+          //hexadecimal tranfer to decimal
+          case 259:
+            for (int k = 0; k < substr_len; k++) {
+              token_content[k] = *token_begin;
+              token_begin++;
+            }
+            //  add the infomation of token to tokens one by one.
+            tokens[nr_token].type = rules[i].token_type;
+            /* the assignment to experssion with array type is not
+             * allowed in the c. so i decided to use memcpy.
+             * tokens[nr_token].str = token_content;
+             */
+            // in case 259(hexadecimal) the val will be transfer to decimal
+            char* endptr;
+            word_t decimal_value = strtoul(token_content, &endptr, 16);
+
+            if(*endptr != '\0') {
+              printf("Fail to transfer hexadecimal to decimal, please check you experssion.");
+              return false;
+            }
+
+            sprintf(token_content, "%u", decimal_value);
+
+            memcpy(tokens[nr_token].str, token_content, sizeof(tokens[nr_token].str));
+            nr_token++;
+            break;
+
+          default:
             for(int k = 0; k < substr_len; k ++){
               token_content[k] = *token_begin;
               token_begin ++;
@@ -179,7 +215,18 @@ word_t eval(int p, int q, bool* success){
     return 0;
   }
   else if (p == q) {
-    return atoi(tokens[p].str);
+    // return atoi(tokens[p].str);
+    char* endptr;
+    if(tokens[p].str[strlen(tokens[p].str) - 1] == 'u') {
+      tokens[p].str[strlen(tokens[p].str) - 1] = '\0';
+    }
+    word_t singleVal = strtoul(tokens[p].str, &endptr, 10);
+    if (*endptr != '\0') {
+      printf("singleVal transfer fail!");
+      *success = false;
+      return 0;
+    }
+    return singleVal;
   }
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1, success);
