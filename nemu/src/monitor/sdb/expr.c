@@ -20,21 +20,36 @@
  */
 #include <regex.h>
 
+// Add the vaddr.h to use function vaddr_read() for pointer dereferencing.
+#include <memory/vaddr.h>
+
 enum
 {
   TK_NOTYPE = 256, // whitespace string
-  TK_EQ,           // equality symbol
   TK_INTEGER,      // decimal integer
   TK_HEX,          // hexdecimal integer
   TK_REG,          // Retrieve the value of a register
 
+
+  TK_DEREF,
+  TK_NEGA, // Negative sign
+
+
   // Operator precedence
+
+  // 300
+  TK_AND = 301,
+
   // 310
-  TK_PLUS = 311,
-  TK_MINUS,
+  TK_EQ = 311, // equality symbol
+  TK_NEQ,      // unequal symbol
 
   // 320
-  TK_MULTI = 321,
+  TK_PLUS = 321,
+  TK_MINUS,
+
+  // 330
+  TK_MULTI = 331,
   TK_DIV,
 
   /* TODO: Add more token types */
@@ -56,7 +71,9 @@ static struct rule {
     {"\\*", TK_MULTI},
     {"\\(", '('},
     {"\\)", ')'},
-    {"==", TK_EQ}, // equal
+    {"==", TK_EQ}, 
+    {"!=", TK_NEQ},
+    {"&&", TK_AND},
 
     /* plcing hexadecimal before decimal is done to prevent
      * the decimal matching from mistakenly capturing the '0'
@@ -66,7 +83,8 @@ static struct rule {
     {"0x[0-9A-Fa-f]+", TK_HEX},
     {"[0-9]+u?", TK_INTEGER}, // decimal integer
 
-    {"\\$(ra|sp|gp|tp|t[0-6]|s[0-9]|a[0-7])", TK_REG}, //Regular expression to match registers.
+    // Regular expression to match registers.
+    {"\\$(ra|sp|gp|tp|t[0-6]|s[0-9]|a[0-7])", TK_REG},
 
 };
 
@@ -269,6 +287,22 @@ word_t eval(int p, int q, bool* success){
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1, success);
   }
+  else if (tokens[p].type == TK_DEREF || tokens[p].type == TK_NEGA) {
+    switch (tokens[p].type)
+    {
+    case TK_DEREF:
+      word_t addr_eval = eval(p + 1, q, success);
+      return vaddr_read(addr_eval, 4);
+      break;
+    case TK_NEGA:
+      return -1 * eval(p + 1, q, success);
+      break;
+    default:
+      *success = false;
+      printf("Unary operator parsing failed");
+      return 0;
+    }
+  }
   else {
     int balance = 0;
     int op_type = 500;
@@ -291,11 +325,18 @@ word_t eval(int p, int q, bool* success){
         }
       }
     }
+
     word_t val1 = eval(p, op - 1, success);
     word_t val2 = eval(op + 1, q, success);
 
     switch (op_type)
     {
+    case TK_AND:
+      return val1 && val2;
+    case TK_EQ:
+      return val1 == val2;
+    case TK_NEQ:
+      return val1 != val2;
     case TK_PLUS:
       return val1 + val2;
     case TK_MINUS:
@@ -314,7 +355,9 @@ word_t eval(int p, int q, bool* success){
       {
         return val1 / val2;
       }
-        default : assert(0);
+      default : 
+        Log("%d", op_type);
+        assert(0);
       }
     
   }
@@ -329,6 +372,19 @@ word_t expr(char *e, bool *success)
     *success = false;
     return 0;
   }
+
+  // Determin the TK_MULTI and TK_DERFE
+  for(int i = 0; i < nr_token; i ++) {
+    if(tokens[i].type == TK_MULTI &&
+       (i == 0 || tokens[i - 1].type == TK_HEX)) {
+        tokens[i].type = TK_DEREF;
+    }
+    if(tokens[i].type == TK_MINUS &&
+       (i == 0 || ((tokens[i - 1].type != TK_INTEGER) && (tokens[i - 1].type != TK_HEX) ) )) {
+        tokens[i].type = TK_NEGA;
+       }
+  }
+
 
   /* TODO: Insert codes to evaluate the expression. */
   word_t res = eval(0, nr_token - 1, success);
