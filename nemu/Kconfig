@@ -215,3 +215,9 @@ config RT_CHECK
   default y
 
 endmenu
+
+config SCAN_WATCHPOINT
+    bool "Scan watchpoints"
+    default y
+    help
+      Enable this switch to set macro variable CONFIG_SCAN_WATCHPOINT to 1.
