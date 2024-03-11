@@ -18,6 +18,9 @@
 #include <cpu/difftest.h>
 #include <locale.h>
 
+// Add the sdb.h to compelet the watchpoint function.
+#include "/home/hubert/ics2023/nemu/src/monitor/sdb/sdb.h"
+
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
  * This is useful when you use the `si' command.
@@ -38,6 +41,9 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+  // scan all watchpoints.
+  scan_watchpoints();
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {

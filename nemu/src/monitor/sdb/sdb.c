@@ -90,8 +90,9 @@ static int cmd_info(char* args) {
       break;
 
     case 'w':
-      
+      show_watchpoints();
       break;
+
     default:
       printf("No valid parameters were provided\n");
   }
@@ -138,6 +139,22 @@ static int cmd_p(char* args) {
   return 0;
 }
 
+static int cmd_w(char* args) {
+  new_wp(args);
+  return 0;
+}
+
+static int cmd_d(char* args) {
+  int No = atoi(args);
+  WP* wp = search_watchpoints(No);
+
+  if(wp == NULL) {
+    printf("Fail to delete!!!");
+  }
+  
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -148,8 +165,11 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
 	{ "si", "let program run N steps and N is one if have no specific figures is given", cmd_si},
   { "info", "Print the enssential infomation", cmd_info},
-  { "x", "scan the RAM", cmd_x},
+  { "x", "scan the memory", cmd_x},
   { "p", "print the value of experssion", cmd_p},
+  { "w", "set the watchpoint", cmd_w},
+  { "d", "delete the watchpoint", cmd_d},
+
   /* TODO: Add more commands */
 
 };

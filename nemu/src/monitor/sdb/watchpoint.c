@@ -17,13 +17,8 @@
 
 #define NR_WP 32
 
-typedef struct watchpoint {
-  int NO;
-  struct watchpoint *next;
-
-  /* TODO: Add more members if necessary */
-
-} WP;
+// thie definiton has been enclosed by sdb.h
+// typedef struct watchpoint {} WP;
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
@@ -42,7 +37,7 @@ void init_wp_pool() {
 /* TODO: Implement the functionality of watchpoint */
 
 // Awakening a watchpoint from the watchpoint pool.
-WP* new_wp() {
+WP* new_wp(char* args) {
   if(free_ == NULL) {
     printf("No free watchpoints exist!");
     assert(0);
@@ -53,6 +48,20 @@ WP* new_wp() {
 
   res -> next = head;
   head = res;
+
+  // save the expression to res.
+  res -> expression = malloc(strlen(args) + 1);
+  strcpy(res->expression, args);
+
+  // Initialize the value to the current value of the expression
+  bool success;
+  res->value = expr(args, &success);
+
+  if (!success)
+  {
+    printf("Error initializing watchpoint value.");
+    assert(0);
+  }
 
   return res;
 }
@@ -70,8 +79,57 @@ void free_wp(WP *wp) {
       prev -> next = wp -> next;
     }
   }
-  
+
+  free(wp -> expression);
+
   wp -> next = free_;
   free_ = wp;
 }
 
+void scan_watchpoints() {
+  WP *wp = head;
+  while(wp != NULL) {
+    bool success;
+    word_t new_value = expr(wp->expression, &success);
+    
+    if(!success) {
+      printf("Error evaluating watchpoint expression.");
+      assert(0);
+    }
+
+    if(new_value != wp -> value) {
+      nemu_state.state = NEMU_STOP;
+      printf("Watchpoint %d triggered! Expression: %s\n", wp->NO, wp->expression);
+      printf("Old Value: %u, New Value: %u\n", wp->value, new_value);
+      wp -> value = new_value;
+    }
+
+    wp = wp -> next;
+  }
+}
+
+void show_watchpoints() {
+  printf("%-5s%-15s%-20s\n", "Num", "Expression", "Current Value");
+
+  WP *wp = head;
+  while (wp != NULL) {
+    printf("%-5d%-15s%-20u", wp->NO, wp->expression, wp->value);
+
+    wp = wp->next;
+  }
+}
+
+WP* search_watchpoints(int target) {
+  WP* wp = head;
+
+  while(wp != NULL) {
+    if(wp -> NO == target) {
+      return wp;
+    }
+
+    wp = wp -> next;
+  }
+
+  printf("Fail to search the target watchpoint, please check your command\n");
+  return NULL;
+}
