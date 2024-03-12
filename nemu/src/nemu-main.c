@@ -48,10 +48,9 @@ int main(int argc, char *argv[]) {
   //   char experssionFromFile[10000];
   //   sscanf(line, "%d %s", &result, experssionFromFile);
 
-  //   bool *suc = malloc(sizeof(bool));
-  //   *suc = true;
-  //   word_t cal = expr(experssionFromFile, suc);
-  //   if(*suc == false){
+  //   bool suc = true;
+  //   word_t cal = expr(experssionFromFile, &suc);
+  //   if(suc == false){
   //     // Log("%d", line_num);
   //     // assert(0);
   //     cnt ++;

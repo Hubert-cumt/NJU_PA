@@ -50,8 +50,8 @@ static void gen(char c) {
 // }
 
 static void gen_num() {
-  int randomNum = rand() % 50;
-  char numBuffer[4] = {};
+  int randomNum = rand() % 1000000;
+  char numBuffer[8] = {};
   sprintf(numBuffer, "%d", randomNum);
 
   for(int i = 0; numBuffer[i] != '\0'; i++) {

@@ -29,7 +29,8 @@ enum
   TK_INTEGER,      // decimal integer
   TK_HEX,          // hexdecimal integer
   TK_REG,          // Retrieve the value of a register
-
+  TK_LEFT,
+  TK_RIGHT,
 
   TK_DEREF,
   TK_NEGA, // Negative sign
@@ -69,8 +70,8 @@ static struct rule {
     {"\\-", TK_MINUS},
     {"\\/", TK_DIV},
     {"\\*", TK_MULTI},
-    {"\\(", '('},
-    {"\\)", ')'},
+    {"\\(", TK_LEFT},
+    {"\\)", TK_RIGHT},
     {"==", TK_EQ}, 
     {"!=", TK_NEQ},
     {"&&", TK_AND},
@@ -243,16 +244,16 @@ static bool make_token(char *e) {
 bool check_parentheses(int p, int q)
 {
   // the head and tail should be parenthesis.
-  if (tokens[p].type != '(' || tokens[q].type != ')')
+  if (tokens[p].type != TK_LEFT || tokens[q].type != TK_RIGHT)
     return false;
 
   // determin whether ...
   int balance = 0;
   for (int i = p; i <= q; i++)
   {
-    if (tokens[i].type == '(')
+    if (tokens[i].type == TK_LEFT)
       balance++;
-    else if (tokens[i].type == ')')
+    else if (tokens[i].type == TK_RIGHT)
       balance--;
 
     if (balance == 0)
@@ -308,8 +309,8 @@ word_t eval(int p, int q, bool* success){
     int op_type = 500;
     int op = 0;
     for(int i = p; i <= q; i ++) {
-      if(tokens[i].type == '(') balance ++;
-      else if(tokens[i].type == ')') balance --;
+      if(tokens[i].type == TK_LEFT) balance ++;
+      else if(tokens[i].type == TK_RIGHT) balance --;
       
       // bad expression.
       if(balance < 0) {
@@ -357,6 +358,9 @@ word_t eval(int p, int q, bool* success){
       }
       default : 
         Log("%d", op_type);
+        for(int i = p; i <= q; i ++) {
+          Log("%s",tokens[i].str);
+        }
         assert(0);
       }
     
@@ -379,8 +383,8 @@ word_t expr(char *e, bool *success)
        (i == 0 || tokens[i - 1].type == TK_HEX)) {
         tokens[i].type = TK_DEREF;
     }
-    if(tokens[i].type == TK_MINUS &&
-       (i == 0 || ((tokens[i - 1].type != TK_INTEGER) && (tokens[i - 1].type != TK_HEX) ) )) {
+    if(tokens[i].type == TK_MINUS && 
+       (i == 0 || ((tokens[i - 1].type != TK_INTEGER) && (tokens[i - 1].type != TK_HEX) && (tokens[i - 1].type != TK_RIGHT)) )) {
         tokens[i].type = TK_NEGA;
        }
   }
