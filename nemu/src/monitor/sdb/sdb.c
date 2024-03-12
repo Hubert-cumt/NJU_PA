@@ -125,12 +125,13 @@ static int cmd_x(char* args) {
 }
 
 static int cmd_p(char* args) {
-  bool* success = malloc(sizeof(bool));
-  *success = true;
+  // bool* success = malloc(sizeof(bool));
+  // *success = true;
+  bool success = true;
 
-  word_t res = expr(args, success);
+  word_t res = expr(args, &success);
   
-  if(*success == false) {
+  if(success == false) {
     printf("invaild experssion. \n");
   }else {
     printf("the result of calculate is %u \n", res);
