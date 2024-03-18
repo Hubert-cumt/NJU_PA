@@ -52,14 +52,15 @@ WP* new_wp(char* args) {
   // save the expression to res.
   res -> expression = malloc(strlen(args) + 1);
   strcpy(res->expression, args);
+  Log("%s", res->expression);
 
   // Initialize the value to the current value of the expression
-  bool success;
-  res->value = expr(args, &success);
+  bool success = true;
+  res->value = expr(res->expression, &success);
 
   if (!success)
   {
-    printf("Error initializing watchpoint value.");
+    Log("Error initializing watchpoint value.");
     assert(0);
   }
 
@@ -89,7 +90,7 @@ void free_wp(WP *wp) {
 void scan_watchpoints() {
   WP *wp = head;
   while(wp != NULL) {
-    bool success;
+    bool success = true;
     word_t new_value = expr(wp->expression, &success);
     
     if(!success) {
@@ -113,7 +114,7 @@ void show_watchpoints() {
 
   WP *wp = head;
   while (wp != NULL) {
-    printf("%-5d%-15s%-20u", wp->NO, wp->expression, wp->value);
+    printf("%-5d%-15s%-20u\n", wp->NO, wp->expression, wp->value);
 
     wp = wp->next;
   }

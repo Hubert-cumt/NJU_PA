@@ -153,6 +153,8 @@ static int cmd_d(char* args) {
     printf("Fail to delete!!!");
   }
   
+  free_wp(wp);
+
   return 0;
 }
 

@@ -380,7 +380,7 @@ word_t expr(char *e, bool *success)
   // Determin the TK_MULTI and TK_DERFE
   for(int i = 0; i < nr_token; i ++) {
     if(tokens[i].type == TK_MULTI &&
-       (i == 0 || tokens[i - 1].type == TK_HEX)) {
+       (i == 0 || ((tokens[i - 1].type != TK_INTEGER) && (tokens[i - 1].type != TK_HEX) && (tokens[i - 1].type != TK_RIGHT)) )) {
         tokens[i].type = TK_DEREF;
     }
     if(tokens[i].type == TK_MINUS && 
