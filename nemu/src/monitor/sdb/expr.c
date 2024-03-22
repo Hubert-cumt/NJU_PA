@@ -35,6 +35,7 @@ enum
   TK_DEREF,
   TK_NEGA, // Negative sign
 
+  TK_PC, // programe counter
 
   // Operator precedence
 
@@ -86,6 +87,7 @@ static struct rule {
 
     // Regular expression to match registers.
     {"\\$(ra|sp|gp|tp|t[0-6]|s[0-9]|a[0-7])", TK_REG},
+    {"\\$pc", TK_PC},
 
 };
 
@@ -147,6 +149,19 @@ static bool make_token(char *e) {
 
         switch (rules[i].token_type) {
           case TK_NOTYPE: break;
+
+          // Add the $pc to provide fake-breakpoint function
+          case TK_PC:
+            tokens[nr_token].type = rules[i].token_type;
+            
+            // Get the cpu.pc
+            char pc_str[32];
+            sprintf(pc_str, "%u", cpu.pc);
+
+            memcpy(tokens[nr_token].str, pc_str, sizeof(pc_str));
+            nr_token ++;
+            
+          break;
 
           // Tranfer 0x.. -> uint32_t
           case TK_HEX:
