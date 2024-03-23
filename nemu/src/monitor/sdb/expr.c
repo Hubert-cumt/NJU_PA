@@ -134,8 +134,10 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
+        #ifdef CONFIG_PRINTMAKETOKEN
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        #endif
 
         position += substr_len;
 
@@ -198,8 +200,10 @@ static bool make_token(char *e) {
             }
             tokens[nr_token].type = rules[i].token_type;
 
-            bool* success = malloc(sizeof(bool));
-            *success = true;
+            // bool* success = malloc(sizeof(bool));
+            // *success = true;
+
+            bool success = true;
 
             // in case of TK_REG, the val need to get by API.
 
@@ -209,9 +213,9 @@ static bool make_token(char *e) {
               token_content[substr_len - 1] = '\0';
             }
 
-            word_t regVal = isa_reg_str2val(token_content, success); //API of <isa.h>
+            word_t regVal = isa_reg_str2val(token_content, &success); //API of <isa.h>
             
-            if(*success == false) {
+            if(success == false) {
               printf("Fail to get the val of reg, please check you expression.");
               return false;
             }

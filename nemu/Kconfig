@@ -221,3 +221,10 @@ config SCAN_WATCHPOINT
     default y
     help
       Enable this switch to set macro variable CONFIG_SCAN_WATCHPOINT to 1.
+
+config PRINT_MAKETOKEN
+    bool "Print maketoken"
+    default y
+    help
+      Enable this switch to set macro variable CONFIG_PRINT_MAKETOKEN to 1.
+    

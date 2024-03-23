@@ -101,7 +101,7 @@ void scan_watchpoints() {
     if(new_value != wp -> value) {
       nemu_state.state = NEMU_STOP;
       printf("Watchpoint %d triggered! Expression: %s\n", wp->NO, wp->expression);
-      printf("Old Value: %u, New Value: %u\n", wp->value, new_value);
+      printf("Old Value: %u (%#x), New Value: %u (%#x)\n", wp->value, wp->value, new_value, new_value);
       wp -> value = new_value;
     }
 

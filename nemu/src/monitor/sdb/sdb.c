@@ -134,7 +134,7 @@ static int cmd_p(char* args) {
   if(success == false) {
     printf("invaild experssion. \n");
   }else {
-    printf("the result of calculate is %u \n", res);
+    printf("the result of calculate is %u (0x%x)\n", res, res);
   }
 
   return 0;
