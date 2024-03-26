@@ -151,7 +151,6 @@ config ITRACE_COND
   string "Only trace instructions when the condition is true"
   default "true"
 
-
 config DIFFTEST
   depends on TARGET_NATIVE_ELF
   bool "Enable differential testing"
@@ -160,7 +159,17 @@ config DIFFTEST
     Enable differential testing with a reference design.
     Note that this will significantly reduce the performance of NEMU.
 
-choice
+config IRINGBUF
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER && ITRACE
+  bool "Enable RingBuffer to show the instrcutons"
+  default y
+
+config MTRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable memory trace"
+  default y
+
+  choice
   prompt "Reference design"
   default DIFFTEST_REF_SPIKE if ISA_riscv
   default DIFFTEST_REF_KVM if ISA_x86
@@ -227,4 +236,5 @@ config PRINT_MAKETOKEN
     default y
     help
       Enable this switch to set macro variable CONFIG_PRINT_MAKETOKEN to 1.
+      
     

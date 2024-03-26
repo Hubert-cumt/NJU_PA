@@ -17,6 +17,8 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
+// My dataStructure to accomplish Iringbuf
+#include <dataStructure/ringBuffer.h>
 
 // Add the sdb.h to compelet the watchpoint function.
 #include "/home/hubert/ics2023/nemu/src/monitor/sdb/sdb.h"
@@ -32,6 +34,10 @@ CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
+
+#ifdef CONFIG_IRINGBUF
+RingBuffer* rb;
+#endif
 
 void device_update();
 
@@ -68,6 +74,11 @@ static void exec_once(Decode *s, vaddr_t pc) {
   space_len = space_len * 3 + 1;
   memset(p, ' ', space_len);
   p += space_len;
+  
+// IRINGBUF depend on ITRACE
+#ifdef CONFIG_IRINGBUF
+  enqueue(rb, s->logbuf);
+#endif
 
 #ifndef CONFIG_ISA_loongarch32r
   void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
@@ -77,6 +88,20 @@ static void exec_once(Decode *s, vaddr_t pc) {
   p[0] = '\0'; // the upstream llvm does not support loongarch32r
 #endif
 #endif
+
+// #ifdef CONFIG_IRINGBUF
+//   // the 128bytes should be not change.
+//   char temp[128]; 
+//   char* ptr_temp = temp;
+//   memset(temp, 0, sizeof temp);
+//   ptr_temp += snprintf(ptr_temp, sizeof(temp), FMT_WORD ":", s->pc);
+//   int ilen_rb = s->snpc - s->pc;
+//   uint8_t *inst_rb = (uint8_t *)&s->isa.inst.val;
+//   for(int i = ilen_rb - 1; i >= 0; i --) {
+//     ptr_temp += snprintf(ptr_temp, 4, " %02x", inst_rb[i]);
+//   }
+//   enqueue(rb, temp);
+// #endif
 }
 
 static void execute(uint64_t n) {
@@ -106,6 +131,11 @@ void assert_fail_msg() {
 
 /* Simulate how the CPU works. */
 void cpu_exec(uint64_t n) {
+  #ifdef CONFIG_IRINGBUF
+  // init the RingBuffer
+  rb = createRingBuffer(12);
+  #endif
+
   g_print_step = (n < MAX_INST_TO_PRINT);
   switch (nemu_state.state) {
     case NEMU_END: case NEMU_ABORT:
@@ -130,7 +160,16 @@ void cpu_exec(uint64_t n) {
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
+
+      #ifdef CONFIG_IRINGBUF
+        if(nemu_state.state == NEMU_ABORT) printRingBuffer(rb);
+      #endif
       // fall through
     case NEMU_QUIT: statistic();
   }
+
+  #ifdef CONFIG_IRINGBUF
+  // free the RingBuffer
+  destroyRingBuffer(rb);
+  #endif
 }
