@@ -51,31 +51,39 @@ void init_mem() {
 }
 
 word_t paddr_read(paddr_t addr, int len) {
+  #ifdef CONFIG_MTRACE
+  FILE *fp = fopen("/home/hubert/ics2023/nemu/build/mem-log.txt", "a+");
+  if (fp != NULL) {
+    fprintf(fp, "Read\t0x%x\tfor %d bytes\n", addr, len);
+    fclose(fp);
+    // printf("File opened successfully and data Read to mem-log.txt.\n");
+  } else {
+    printf("Failed to open or create mem-log.txt for reading.\n");
+  }
+  #endif
+
   if (likely(in_pmem(addr))) return pmem_read(addr, len);
   IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
   out_of_bound(addr);
-
-  #ifdef CONFIG_MTRACE
-  FILE *fp = fopen("../../build/mem_log.txt", "a");
-  if(fp != NULL) {
-    fprintf(fp, "Read\t0x%x\tfor %d bytes", addr, len);
-    fclose(fp);
-  }
-  #endif
 
   return 0;
 }
 
 void paddr_write(paddr_t addr, int len, word_t data) {
+  #ifdef CONFIG_MTRACE
+  FILE *fp = fopen("/home/hubert/ics2023/nemu/build/mem-log.txt", "a+");
+  if (fp != NULL) {
+    fprintf(fp, "Write\t0x%x\tfor %d bytes\n", addr, len);
+    fclose(fp);
+    // printf("File opened successfully and data written to mem-log.txt.\n");
+  } else {
+    printf("Failed to open or create mem-log.txt for writing.\n");
+  }
+  #endif
+
   if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
   out_of_bound(addr);
 
-  #ifdef CONFIG_MTRACE
-  FILE *fp = fopen("../../build/mem_log.txt", "a");
-  if(fp != NULL) {
-    fprintf(fp, "Write\t0x%x\tfor %d bytes", addr, len);
-    fclose(fp);
-  }
-  #endif
+
 }

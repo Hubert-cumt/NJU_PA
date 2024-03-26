@@ -19,6 +19,8 @@
 #include <locale.h>
 // My dataStructure to accomplish Iringbuf
 #include <dataStructure/ringBuffer.h>
+// My dataStructure to accomplish FTrace
+#include <dataStructure/funcStack.h>
 
 // Add the sdb.h to compelet the watchpoint function.
 #include "/home/hubert/ics2023/nemu/src/monitor/sdb/sdb.h"
@@ -37,6 +39,10 @@ static bool g_print_step = false;
 
 #ifdef CONFIG_IRINGBUF
 RingBuffer* rb;
+#endif
+
+#ifdef CONFIG_FTRACE
+Stack* st;
 #endif
 
 void device_update();
@@ -136,6 +142,10 @@ void cpu_exec(uint64_t n) {
   rb = createRingBuffer(12);
   #endif
 
+  #ifdef CONFIG_FTRACE
+  st = stack_init();
+  #endif
+
   g_print_step = (n < MAX_INST_TO_PRINT);
   switch (nemu_state.state) {
     case NEMU_END: case NEMU_ABORT:
@@ -171,5 +181,9 @@ void cpu_exec(uint64_t n) {
   #ifdef CONFIG_IRINGBUF
   // free the RingBuffer
   destroyRingBuffer(rb);
+  #endif
+
+  #ifdef CONFIG_FTRACE
+  stack_del(st);
   #endif
 }
