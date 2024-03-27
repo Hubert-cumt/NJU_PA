@@ -31,14 +31,22 @@ void stack_push(Stack* stack, const char* name, word_t entry, word_t addr) {
     stack->data[++stack->top] = pair;
 }
 
-Pair stack_pop(Stack* stack) {
-    Pair pair;
+// Pair stack_pop(Stack* stack) {
+//     Pair pair;
+//     if (stack_isEmpty(stack)) {
+//         printf("Error: Stack is empty.\n");
+//         exit(EXIT_FAILURE);
+//     }
+//     pair = stack->data[stack->top--];
+//     return pair;
+// }
+
+void stack_pop(Stack* stack) {
     if (stack_isEmpty(stack)) {
         printf("Error: Stack is empty.\n");
         exit(EXIT_FAILURE);
     }
-    pair = stack->data[stack->top--];
-    return pair;
+    stack->top--;
 }
 
 Pair stack_top(Stack* stack) {

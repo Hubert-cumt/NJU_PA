@@ -31,7 +31,7 @@ int stack_isFull(Stack* stack);
 
 void stack_push(Stack* stack, const char* name, word_t entry, word_t addr);
 
-Pair stack_pop(Stack* stack);
+void stack_pop(Stack* stack);
 
 Pair stack_top(Stack* stack);
 #endif

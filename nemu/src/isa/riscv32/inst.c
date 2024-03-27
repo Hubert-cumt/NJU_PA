@@ -58,7 +58,7 @@ void ftrace_in(word_t nowpc, word_t addr) {
               stack_push(st, name, nowpc, addr);
               printf("%#x:", nowpc);
               for(int i = 0; i < depth; i++) {
-                printf(" ");
+                printf("  ");
               }
               printf("call[%s@%#x]\n", name, addr);
               depth ++;
@@ -80,13 +80,15 @@ void ftrace_out(word_t nowpc, word_t addr) {
 
   Pair temp = stack_top(st);
   if(addr - 4 == temp.entry) {
+    // Log("111111111");
     depth--;
 
     printf("%#x:", nowpc);
     for(int i = 0; i < depth; i++) {
-      printf(" ");
+      printf("  ");
     }
     printf("back[%s@%#x]\n", temp.name, temp.addr);
+    stack_pop(st);
     fclose(file);
     return;
   }
@@ -147,7 +149,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 100 ????? 00000 11", lbu    , I, R(rd) = Mr(src1 + imm, 1)); // ?
   INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi   , I, R(rd) = src1 + imm);
   INSTPAT("??????? ????? ????? 111 ????? 00100 11", andi   , I, R(rd) = src1 & imm);
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, word_t t = s->pc + 4; s->dnpc = (src1 + (imm & ~1)); R(rd) = t; IFDEF(CONFIG_FTRACE, ftrace_out(s->pc, s->dnpc)));
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, word_t t = s->pc + 4; s->dnpc = ((src1 + imm) & ~1); R(rd) = t; IFDEF(CONFIG_FTRACE, ftrace_out(s->pc, s->dnpc)));
   INSTPAT("??????? ????? ????? 010 ????? 00000 11", lw     , I, R(rd) = Mr(src1 + imm, 4));
   INSTPAT("??????? ????? ????? 011 ????? 00100 11", sltiu  , I, R(rd) = src1 < imm ? 1 : 0);
   INSTPAT("0000000 ????? ????? 001 ????? 00100 11", slli   , I, if(! (imm >> 5 & 1)) { R(rd) = src1 << imm; }); // imm No BITS because the high bit all are 0
