@@ -126,6 +126,17 @@ void init_monitor(int argc, char *argv[]) {
   }
   #endif
 
+  #ifdef CONFIG_DTRACE
+  // reset the mem-log.txt
+  FILE *fp2 = fopen("/home/hubert/ics2023/nemu/trace/device_log.txt", "w");
+  if (fp2 != NULL) {
+    fclose(fp2);
+    // printf("File mem-log.txt has been reset.\n");
+  } else {
+    printf("Failed to reset mem-log.txt.\n");
+  }
+  #endif
+
   /* Set random seed. */
   init_rand();
 

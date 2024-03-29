@@ -22,11 +22,16 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
     if(ref_r->gpr[i] == gpr(i)) {
       continue;
     }else {
+      pc = ref_r->pc;
       return false;
     }
   }
+  
+  if(ref_r->pc != cpu.pc){
+    return false;
+  }
 
-  return true;;
+  return true;
 }
 
 void isa_difftest_attach() {

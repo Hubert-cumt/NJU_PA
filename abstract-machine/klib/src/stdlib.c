@@ -29,12 +29,33 @@ int atoi(const char* nptr) {
   return x;
 }
 
+
+// malloc from heap Area
+void* addr = NULL;
+
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
 #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  panic("Not implemented");
+  // panic("Not implemented");
+
+  // printf("%x\n", heap.start);
+  // printf("%x\n", heap.end);
+  // printf("size : %d\n", size);
+  addr = (addr == NULL ? (void*)ROUNDUP(heap.start, sizeof(void*)) : addr);
+  void *aligned_addr = (void*)ROUNDUP(addr, sizeof(void*));
+
+  size_t aligned_size = ROUNDUP(size, sizeof(void*));
+
+  if(aligned_addr + aligned_size < heap.end) {
+    memset(aligned_addr, 0, aligned_size);
+    addr = aligned_addr + aligned_size;
+    return aligned_addr;
+  }else {
+    printf("heal is full!");
+    return NULL;
+  }
 #endif
   return NULL;
 }
