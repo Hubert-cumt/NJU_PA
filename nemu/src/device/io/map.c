@@ -62,7 +62,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
   #ifdef CONFIG_DTRACE
   FILE *fp = fopen("/home/hubert/ics2023/nemu/trace/device_log.txt", "a+");
   if (fp != NULL) {
-    fprintf(fp, "Access %s : %x with length: %d\n",map->name, addr, len);
+    fprintf(fp, "Read %s : %x with length: %d\n",map->name, addr, len);
     fclose(fp);
     // printf("File opened successfully and data Read to mem-log.txt.\n");
   } else {
@@ -79,4 +79,15 @@ void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
   paddr_t offset = addr - map->low;
   host_write(map->space + offset, len, data);
   invoke_callback(map->callback, offset, len, true);
+
+  #ifdef CONFIG_DTRACE
+  FILE *fp1 = fopen("/home/hubert/ics2023/nemu/trace/device_log.txt", "a+");
+  if (fp1 != NULL) {
+    fprintf(fp1, "Write %s : %x with length: %d\n",map->name, addr, len);
+    fclose(fp1);
+    // printf("File opened successfully and data Read to mem-log.txt.\n");
+  } else {
+    printf("Failed to open or create mem-log.txt for reading.\n");
+  }
+  #endif
 }
