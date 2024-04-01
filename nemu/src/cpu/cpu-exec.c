@@ -186,4 +186,5 @@ void cpu_exec(uint64_t n) {
   #ifdef CONFIG_FTRACE
   stack_del(st);
   #endif
+
 }
