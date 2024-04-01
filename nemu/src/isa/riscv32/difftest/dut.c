@@ -22,6 +22,7 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
     if(ref_r->gpr[i] == gpr(i)) {
       continue;
     }else {
+      printf("The different Reg: %s REF: %#x\tDUT: %#x\n", reg_name(i), ref_r->gpr[i], gpr(i));
       pc = ref_r->pc;
       return false;
     }
