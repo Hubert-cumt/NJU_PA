@@ -18,9 +18,18 @@
 
 #include <common.h>
 
+// CSR regs
+typedef struct {
+  word_t mtvec; // store the exception entry address
+  word_t mepc; // store the PC which trigger the exception
+  word_t mstatus; // store the State of cpu
+  word_t mcause; // store the reason of trigger exception
+} CSR_Regs;
+
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
   vaddr_t pc;
+  CSR_Regs CSRs; 
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
 // decode

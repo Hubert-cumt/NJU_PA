@@ -127,13 +127,24 @@ void init_monitor(int argc, char *argv[]) {
   #endif
 
   #ifdef CONFIG_DTRACE
-  // reset the mem-log.txt
+  // reset the device-log.txt
   FILE *fp2 = fopen("/home/hubert/ics2023/nemu/trace/device_log.txt", "w");
   if (fp2 != NULL) {
     fclose(fp2);
-    // printf("File mem-log.txt has been reset.\n");
+    // printf("File device-log.txt has been reset.\n");
   } else {
-    printf("Failed to reset mem-log.txt.\n");
+    printf("Failed to reset device-log.txt.\n");
+  }
+  #endif
+
+   #ifdef CONFIG_ETRACE
+  // reset the etrace.txt
+  FILE *fp3 = fopen("/home/hubert/ics2023/nemu/trace/etrace.txt", "w");
+  if (fp3 != NULL) {
+    fclose(fp3);
+    // printf("File etrace.txt has been reset.\n");
+  } else {
+    printf("Failed to reset etrace.txt.\n");
   }
   #endif
 
