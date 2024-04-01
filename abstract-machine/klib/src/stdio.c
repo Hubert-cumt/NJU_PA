@@ -5,11 +5,11 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define TEMP_SIZE 32
+#define TEMP_SIZE 4096
 
 int printf(const char *fmt, ...) {
   // panic("Not implemented");
-  char temp[512];
+  char temp[TEMP_SIZE];
   char *out = temp;
 
   va_list args;
