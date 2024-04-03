@@ -62,11 +62,27 @@ static word_t* Redirect2CSR(word_t imm) {
   }
 }
 
-#define ECALL() { \
-  s->dnpc = isa_raise_intr(0xb, s->pc); \
-  if(cpu.CSRs.mcause == 0xb) { \
-    cpu.CSRs.mepc += 4; \
-  } \
+// cant +4 at here !!! NOT MATCH MANUL
+// #define ECALL() { 
+//   s->dnpc = isa_raise_intr(0xb, s->pc); 
+//   if(cpu.CSRs.mcause == 0xb) { 
+//     cpu.CSRs.mepc += 4; 
+//   } 
+// } 
+
+#define ECALL() {exceptionNoIdentify(s);}
+
+void exceptionNoIdentify(Decode* s) {
+  bool success;
+  word_t Val_a7 = isa_reg_str2val("a7", &success);
+  switch (Val_a7) {
+  case -1: // yield
+    s->dnpc = isa_raise_intr(0xb, s->pc);
+    break;
+  default:
+    s->dnpc = isa_raise_intr(0x0, s->pc);
+    break;
+  }
 } 
 
 #ifdef CONFIG_ETRACE

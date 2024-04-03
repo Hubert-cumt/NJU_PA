@@ -126,6 +126,31 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           break;
         }
 
+        case 'p': {
+          unsigned long value = va_arg(ap, unsigned long);
+          char temp[TEMP_SIZE];
+          int temp_to = 0;
+          int remainder = 0;
+
+          // transfer word_t to Hexchar 
+          do {
+            remainder = value % 16;
+            temp[temp_to ++] = remainder < 10 ? '0' + remainder : 'a' + (remainder - 10);
+            value /= 16;
+          }while(value > 0);
+
+          while(temp_to < width) {
+            out_ptr[to ++] = ' ';
+            width --;
+          }
+
+          while(temp_to > 0) {
+            out_ptr[to ++] = temp[-- temp_to];
+          }
+
+          break;
+        }
+
         default:
           break;
       }
