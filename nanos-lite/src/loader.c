@@ -54,10 +54,10 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       Elf32_Addr Virtaddr = phdr.p_vaddr;
       size_t Memsize = phdr.p_memsz;
 
-      Log("Vitraddr: %x", Virtaddr);
-      Log("Filesize: %d", Filesize);
-      Log("Memsize: %d", Memsize);
-      Log("AreaTail: %x", Virtaddr + Memsize);
+      // Log("Vitraddr: %x", Virtaddr);
+      // Log("Filesize: %d", Filesize);
+      // Log("Memsize: %d", Memsize);
+      // Log("AreaTail: %x", Virtaddr + Memsize);
 
       char* buffer = (char *)malloc(Filesize);
       ramdisk_read(buffer, Offset, Filesize);

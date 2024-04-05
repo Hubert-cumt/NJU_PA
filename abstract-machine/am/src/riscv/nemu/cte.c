@@ -20,8 +20,15 @@ Context* __am_irq_handle(Context *c) {
     switch (c->mcause) {
       case 0xb : {
         c->mepc += 4;
-        ev.event = EVENT_YIELD; 
-        break;
+        if(c->GPR1 == -1) {
+          ev.event = EVENT_YIELD;
+          break;
+        }else if(c->GPR1 >= 0 && c->GPR1 <=19) {
+          ev.event = EVENT_SYSCALL;
+          break;
+        }else{
+          printf("Match Fail!\n");
+        }
       }
       default: ev.event = EVENT_ERROR; break;
     }

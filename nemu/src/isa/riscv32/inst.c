@@ -73,16 +73,30 @@ static word_t* Redirect2CSR(word_t imm) {
 #define ECALL() {exceptionNoIdentify(s);}
 
 void exceptionNoIdentify(Decode* s) {
-  bool success;
-  word_t Val_a7 = isa_reg_str2val("a7", &success);
-  switch (Val_a7) {
-  case -1: // yield
-    s->dnpc = isa_raise_intr(0xb, s->pc);
-    break;
-  default:
-    s->dnpc = isa_raise_intr(0x0, s->pc);
-    break;
-  }
+  s->dnpc = isa_raise_intr(0xb, s->pc);
+
+  // bool success;
+  // word_t Val_a7 = isa_reg_str2val("a7", &success);
+  // // give up switch-case 
+
+  // switch (Val_a7) {
+  // case -1: // yield
+  //   s->dnpc = isa_raise_intr(0xb, s->pc);
+  //   break;
+  //   case :
+  // default:
+  //   s->dnpc = isa_raise_intr(0x0, s->pc);
+  //   break;
+  // }
+
+  // if(Val_a7 == -1) {
+  //   s->dnpc = isa_raise_intr(0xb, s->pc);
+  // }else if (Val_a7 > 1 && Val_a7 < 19)
+  // {
+  //   s->dnpc = isa_raise_intr()
+  // }else{
+  //   s->dnpc = isa_raise_intr(0x0, s->pc);
+  // }
 } 
 
 #ifdef CONFIG_ETRACE
