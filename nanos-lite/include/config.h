@@ -1,0 +1,2 @@
+
+#define CONFIG_STRACE 1
