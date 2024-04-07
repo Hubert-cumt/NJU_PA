@@ -4,7 +4,8 @@
 static Context* do_event(Event e, Context* c) {
   switch (e.event) {
     case EVENT_YIELD : printf("WOW ! Yield !!!!!\n"); break;
-    case EVENT_SYSCALL: printf("A syscall HIT!\n"); do_syscall(c); break;
+    // case EVENT_SYSCALL: printf("A syscall HIT!\n"); do_syscall(c); break;
+    case EVENT_SYSCALL:  do_syscall(c); break; 
     default: panic("Unhandled event ID = %d", e.event);
   }
 

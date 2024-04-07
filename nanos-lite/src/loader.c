@@ -1,5 +1,6 @@
 #include <proc.h>
 #include <elf.h>
+#include <fs.h>
 
 #ifdef __LP64__
 # define Elf_Ehdr Elf64_Ehdr
@@ -24,9 +25,14 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   // char temp_buf[TEMP_SIZE];
   // unsigned char* temp_buf_p = temp_buf
 
+  // calculate the offset of the file
+  int fd = fs_open(filename, 0, 0);
+  
+  Log("fd: %d", fd);
   // read the ELF file from ramdisk 
   Elf_Ehdr ehdr;
-  ramdisk_read(&ehdr, 0, sizeof(Elf_Ehdr));
+  // ramdisk_read(&ehdr, pos, sizeof(Elf_Ehdr));
+  fs_read(fd, &ehdr, sizeof(Elf_Ehdr));
 
   // check the magic number 
   if(ehdr.e_ident[EI_MAG0] != 0x7F ||
@@ -45,8 +51,13 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 
   // get the every segment which need LOAD
   Elf_Phdr phdr;
+  // fs_lseek(fd, ehdr.e_phoff, SEEK_SET);
   for(int i = 0; i < ehdr.e_phnum; i++) {
-    ramdisk_read(&phdr, ehdr.e_phoff + i * ehdr.e_phentsize, sizeof(Elf_Phdr));
+    fs_lseek(fd, ehdr.e_phoff + i * sizeof(Elf_Phdr), SEEK_SET);
+    // ramdisk_read(&phdr, ehdr.e_phoff + i * ehdr.e_phentsize, sizeof(Elf_Phdr));
+    fs_read(fd, &phdr, sizeof(Elf_Phdr));
+    
+
     // check whether the Type is PT_LOAD
     if(phdr.p_type == PT_LOAD) {
       size_t Offset = phdr.p_offset;
@@ -54,13 +65,16 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       Elf32_Addr Virtaddr = phdr.p_vaddr;
       size_t Memsize = phdr.p_memsz;
 
-      // Log("Vitraddr: %x", Virtaddr);
-      // Log("Filesize: %d", Filesize);
-      // Log("Memsize: %d", Memsize);
-      // Log("AreaTail: %x", Virtaddr + Memsize);
+      Log("Vitraddr: %x", Virtaddr);
+      Log("Filesize: %d", Filesize);
+      Log("Memsize: %d", Memsize);
+      Log("AreaTail: %x", Virtaddr + Memsize);
 
       char* buffer = (char *)malloc(Filesize);
-      ramdisk_read(buffer, Offset, Filesize);
+      // ramdisk_read(buffer, Offset, Filesize);
+      fs_lseek(fd, Offset, SEEK_SET);
+      fs_read(fd, buffer, Filesize);
+      
       // use filesize bc ONLY this length. TIP: memcpy NOT check you length
       memcpy((void *)(uintptr_t)Virtaddr, buffer, Filesize);
       
