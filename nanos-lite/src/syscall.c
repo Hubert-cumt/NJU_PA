@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <fs.h>
 #include <config.h>
+#include <sys/time.h>
 
 // the statement of sys_XXX;
 
@@ -23,6 +24,8 @@ int sys_close(int fd);
 off_t sys_lseek(int fd, off_t offset, int whence);
 // No.9 : SYS_brk
 int sys_brk(intptr_t NewLocation);
+// No. 19 : SYS_gettimeofday
+int sys_gettimeofday(struct timeval *tv, struct timezone *tz);
 
 const char* syscalls_name[] = {
   "SYS_exit",
@@ -34,7 +37,17 @@ const char* syscalls_name[] = {
   "",
   "SYS_close",
   "SYS_lseek",
-  "SYS_brk"
+  "SYS_brk", // 9
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "SYS_gettimeofday"
 };
 
 void do_syscall(Context *c) {
@@ -79,6 +92,10 @@ void do_syscall(Context *c) {
       c->GPRx = res;
       break;
     }
+    case 19 : {
+      c->GPRx = sys_gettimeofday((struct timeval *)a[1], (struct timezone *)a[2]);
+      break;
+    }
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 
@@ -96,9 +113,9 @@ void do_syscall(Context *c) {
   // #endif
 
   // Log by just printf
-  #ifdef CONFIG_STRACE
-  printf("syscall[%s]:\tparaments[%d][%x][%d]\treturn[%d]\n", syscalls_name[a[0]], a[1], a[2], a[3], c->GPRx);
-  #endif
+  // #ifdef CONFIG_STRACE
+  // printf("syscall[%s]:\tparaments[%d][%x][%d]\treturn[%d]\n", syscalls_name[a[0]], a[1], a[2], a[3], c->GPRx);
+  // #endif
 }
 
 void sys_exit(uint32_t arg1) {
@@ -131,12 +148,7 @@ int sys_brk(intptr_t NewLocation) {
 }
 
 int sys_open(const char * pathname, int flags, int mode) {
-  int res = fs_open(pathname, flags, mode);
-  if(res <= 2) {
-    return -1;
-  }else {
-    return res;
-  }
+  return fs_open(pathname, flags, mode);
 }
 
 int sys_close(int fd) {
@@ -151,4 +163,12 @@ off_t sys_lseek(int fd, off_t offset, int whence) {
 int sys_read(int fd, void* buf, size_t count) {
   int res = fs_read(fd, buf, count);
   return res;
+}
+
+int sys_gettimeofday(struct timeval *tv, struct timezone *tz) {
+  uint64_t us = io_read(AM_TIMER_UPTIME).us;
+  tv->tv_sec =  us / (int)1e6;
+  tv->tv_usec = us % (int)1e6;
+
+  return 0;
 }

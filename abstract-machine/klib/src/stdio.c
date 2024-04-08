@@ -222,6 +222,7 @@ int sprintf(char *out, const char *fmt, ...) {
         case 's': { // string(char* char[])
           const char *str = va_arg(args, const char*);
           char temp[TEMP_SIZE];
+          memset(temp, 0, sizeof(temp));
           int temp_to = 0;
 
           while(*str != '\0') {
